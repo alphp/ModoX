@@ -1,4 +1,4 @@
-##GENERAL
+## GENERAL
 
 Los entornos de programación que admiten librerias, tales como QuickBASIC y Turbo C, permiten la creación de estas en lenguaje ensamblador a trabes de su código objeto.
 
@@ -47,7 +47,7 @@ Si la función en lenguaje ensamblador devuelve un valor, éste se coloca en el 
 |entero largo    |DX:AX (Palabra de orden alto:Palabra de orden bajo)|
 |simple precisión|DX:AX (Palabra de orden alto:Palabra de orden bajo)|
 
-##QuickBASIC
+## QuickBASIC
 
 Para hacer bien las librerias en ensamblador para QB (QuickBASIC) es necesario cumplir con las especificaciones del interprete (librerias QLB) y con las del lenguaje compilado (librerias LIB).
 
@@ -55,7 +55,7 @@ Puesto que hay detalles que cambian segun se ejecute el programa en modo interpr
 
 Nos referiremos con el termino QB tanto al programa interpretado como al compilado.
 
-##ESTADO DE LA PILA
+## ESTADO DE LA PILA
 
 Cuando se produce la llamada al procedimiento, QB empila los desplazamientos de los parametros (de izquierda a derecha), despues empila el segmento de código y el puntero de instrucción.
 
@@ -74,7 +74,7 @@ La pila quedara entonces como sigue:
 	├─────────────┤
 	│             │ Direcciones Altas
 
-##ACCESO A LOS PARAMETROS
+## ACCESO A LOS PARAMETROS
 
 Puesto que QB empila los desplazamientos de los parametros, tendremos que servirnos de un puntero para acceder a estos de la siguiente manera:
 
@@ -85,7 +85,7 @@ Puesto que QB empila los desplazamientos de los parametros, tendremos que servir
 
 Si el parámetro requerido es una cadena, QB nos da el desplazamiento del descriptor de la cadena, y no de la cadena en si. El descriptor de la cadena tiene una longitud de cuatro bytes, los dos primeros indican la longitud de la cadena, y los dos segundos bytes componen el desplazamiento de la cadena respecto de segmento de datos (DS) cargado por QB con el valor apropiado.
 
-##RETORNO DE VALORES (FUNCIONES)
+## RETORNO DE VALORES (FUNCIONES)
 
 El retorno de valores en las funciones de QB se realiza mediante el registro AX o DX:AX según la siguiente tabla:
 
@@ -95,7 +95,7 @@ El retorno de valores en las funciones de QB se realiza mediante el registro AX 
 |Entero largo    |DX:AX (Palabra de orden alto:Palabra de orden bajo)|
 |Simple precisión|DX:AX (Palabra de orden alto:Palabra de orden bajo)|
 
-##REGLAS A SEGUIR
+## REGLAS A SEGUIR
 
 Los procedimientos deveran estar definidos como FAR (lejanos) y cumplir las siguientes reglas:
 
@@ -103,7 +103,7 @@ Los procedimientos deveran estar definidos como FAR (lejanos) y cumplir las sigu
 2. Los registros BP, CS, DS, ES y SS tendran que ser restarurados antes de retornar a QB en caso de ser modificados.
 3. El retorno a QB se realizara con RET n, siendo n = 2 * Nº Parámetros.
 
-##EJEMPLO
+## EJEMPLO
 
 A continuación se detalla el listado de una libreria en ensamblador con dos procedimientos (Suma y Escribe), se han indicado a modo de comentarios las declaraciones de los procedimientos a incluir en QB:
 

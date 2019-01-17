@@ -1,9 +1,9 @@
-##Interfaz con intérprete de BASIC
+## Interfaz con intérprete de BASIC
 
 La comunicación entre el intérprete de BASIC y un módulo ensamblador se realiza vía sentencia CALL del BASIC:
 
-```Basic
-CALL nombre_subrutina(argumento1,argumento2,...)
+```VB
+CALL nombre_subrutina(argumento1, argumento2, ...)
 ```
 
 Las características de esta comunicación son:
@@ -23,12 +23,12 @@ Las características de esta comunicación son:
 - Los registros ES, CS y DS apuntan inicialmente al comienzo del segmento del BASIC. El registro CS se actualiza cada vez que se ejecuta una sentencia DEF SEG del BASIC.
 - Los datos dentro del segmento del BASIC están direccionados mediante el registro de segmento DS.
 
-##Interfaz con BASIC compilado
+## Interfaz con BASIC compilado
 
 La comunicación entre un módulo BASCOM (IBM PC Basic Compiler) y un módulo ensamblador se realiza, como en el caso del intérprete de BASIC, mediante la sentencia:
 
-```Basic
-CALL nombre_subrutina(argumento1, argumento2,...)
+```VB
+CALL nombre_subrutina(argumento1, argumento2, ...)
 ```
 
 Pero hay diferencias respecto al modo intérprete:
