@@ -211,10 +211,10 @@ void Modo200Lin (void)
 ## Los Colores
 Tanto la teoría como la practica de los colores son idénticas para el Modo X y el Modo 13h. Lo fundamental de este tema no es sino la teoría tricromática, que dice algo así como que todos los colores se pueden obtener a partir de mezclas de tres únicos colores base. Esto que parece muy simple no lo es tanto. Primero habrá que saber que tipo de mezcla vamos a realizar: aditiva (suma de intensidades luminosas) o sustractiva (resta de intensidades luminosas). Dependiendo del tipo de mezcla, los colores base serán unos u otros.
 
-Mezcla | Colores base
------- | ------------
-Aditiva | Rojo (R), Verde (G),Azul (B)
-Sustractiva | Cyan (C), Magenta (M), Amarillo (Y)
+|Mezcla      |Colores base                   |
+|------------|-------------------------------|
+|Aditiva     | RGB (Rojo, Verde, Azul)       |
+|Sustractiva | CMY (Cian, Magenta, Amarillo) |
 
 Pensando un poco nos damos cuenta que un monitor emite luz, y por tanto la mezcla que produce es aditiva, así que los colores base que utilizaremos serán el Rojo (R), el Verde (G) y el Azul (B). Representando cada una de las componentes del color por un byte obtenemos 256 combinaciones de cada componente, que combinadas entre si nos dan un total de 16M colores. Pero para nuestra desgracia de los ocho bits que componen un byte sólo se utilizan los seis de menor peso, con lo que obtenemos 64 combinaciones por componente y 256K colores. Y aquí no se acaban los males, para representar 256K colores hace falta un registro de 18 bits, lo cual no es posible, por lo que se representa cada color por un byte, lo que da como resultado el que sólo se pueden visualizar simultáneamente 256 colores de los 256K posibles.
 
@@ -273,6 +273,90 @@ void PonPaleta (struct RGB Pal[])
 		outportb (VCP, Pal[n].G); // Segundo el Verde (G)
 		outportb (VCP, Pal[n].B); // Tercero el Azul (B)
 	}
+};
+```
+
+## Scroll Gráfico en Modo X:
+
+Al disponer de 256Kb de memoria de video es teóricamente posible cargar una imagen de 640x409 puntos, para lo cual bastara con definir la longitud de la línea en 640 puntos. Tendremos que imaginarnos, en este caso, que tenemos ante nosotros una ventana que nos permite ver sólo una parte del paisage. El efecto denominado Scroll consiste en desplazar esa ventana para poder visualizar otras partes de la memoria, como si pudieramos desplazar la ventana de nuestra imaginaria habitación para poder ver otra parte del horizonte.
+
+Para poder desplazar nuestra ventana, disponemos de dos registros:
+- Dirección de inicio de línea (CRTC 0Ch:CRTC 0Dh)
+- Panning de Píxeles Horizontal (ATC 13h)
+
+La dirección de inicio de línea índica el desplazamiento dentro de la memoria de video en la cual el CRTC comienza la lectura de los datos. El registro CRTC 0Ch es el byte alto y el registro CRTC 0Dh es el byte bajo del desplazamiento. Si la dirección de inicio de línea es cero, tendremos que la esquina superior izquierda de la pantalla representa las coordenadas 0,0 del dibujo en memoria. Si incrementamos este valor en una longitud de línea, es decir en 640 / 4 = 160 bytes, la esquina superior izquierda representara las coordenadas 0,1.
+
+Existe un probrema, el scroll vertical se puede realizar línea a línea, pero resulta imposible realizar un scroll horizontal pixel a pixel mediante este metodo. Esto es debido a que sólo controlamos el desplazamiento, me explico: el CRTC mira la dirección de inicio de línea para averiguar en que posición debe comenzar la lectura de los pixels a representar, asi, si lee un desplazamiento igual a 1, leera el byte 1 del plano 0 y lo representa, luego el byte 1 del plano 1, y asi con el resto de los planos. Si el desplazamiento es igual a 2, el CRTC comenzara la representación de los pixels a partir del byte 2 del plano 0, es decir, cuatro pixels horizontales más a la derecha.
+
+Para solventar este inconveniente la VGA posee un registro denominado panning de pixels horizontal (ATC 13h). Este registro, para el modo X y cómo simplificación, indica el plano por el cual se va a iniciar la representación de los pixels. De esta forma, con un desplazamiento igual a 0 y con un panning igual a 1, el CRTC comenzara la representación a partir del byte 0 del plano 1, consiguiendo de esta forma un scroll horizontal de un pixel.
+
+El cálculo de la dirección de inicio es el siguiente: Dir.Ini. = (LongLin / 4) * y + (x / 4).
+
+El cálculo del panning horizontal es el siguiente: Panning = x MOD 4
+
+```C
+// Scroll Gráfico en Modo X:
+void ScrollGrf (unsigned int x, unsigned int y)
+{
+	union Reg n;
+
+	// Calculamos el desplazamiento vertical en bytes
+	n.w = (LeeLongLin () / 4) * y + (x / 4);
+
+	do {} while (inportb(ISR1) & 0x08);
+
+	// Realizamos el Scroll vertical
+	outportb (CRTCInd, 0x0C);   // Dir. de inicio de línea (parte alta)
+	outportb (CRTCDat, n.b.h);
+	outportb (CRTCInd, 0x0D);   // Dir. de inicio de línea (parte baja)
+	outportb (CRTCDat, n.b.l);
+
+	do {} while (~inportb(ISR1) & 0x08);
+
+	// Realizamos el Scroll horizontal
+	outportb (ATC, 0x13 | 0x20); // Panning de píxelsles horizontal
+	outportb (ATC, (2 * (x % 4)) | 0x20);
+};
+```
+
+## Scrooll en Modo Texto:
+
+La idea de poder desplazar el texto de la misma forma que los gráficos es genial. Gracias a la posibilidad de poder definir los bytes que contiene una línea, podemos tener pantallas de texto virtuales de 160x102 caracteres. Como ocurria en el Modo X, la pantalla actua como una ventana de 80x25 caracteres que sera desplazada por la memoria para visualizar las diferentes partes del texto.
+
+En este caso el scroll que se consigue mediante la dirección de inicio de línea es de caracteres, es decir, el minimo desplazamiento omnidireccional es de un caracter. Esto es asi por la distribución del modo de texto. En el modo texto cada byte representa un caracter, un conjunto de pixels (9x16 pixels en el Modo 03h).
+
+Para realizar un scroll más fino, de pixels, es necesario recurrir como en el caso anterior al panning horizontal (ATC 13h) y ademas al panning vertical (CRTC 08h). En este caso, estos registros indican cuantos pixels ha de desplazarse la visualización hacia la izquierda y hacia arriba.
+
+El cálculo de los valores es como sigue:
+- Dir.Ini. = (LongLin / 4) * (y / 16) + (x / 9)
+- Pan.Hor. = (x MOD 9) - 1
+- Pan.Ver. = (y MOD 16)
+
+```C
+// Scrooll en Modo Texto:
+void ScrollTxt (unsigned int x, unsigned int y)
+{
+	union Reg n;
+
+	// Calculamos el desplazamiento en bytes
+	n.w = (LeeLongLin () / 4) * (y / 16) + (x / 9);
+
+	do {} while (inportb(ISR1) & 0x08);
+
+	// Realizamos el Scroll en bytes
+	outportb (CRTCInd, 0x0C);    // Dir. de inicio de línea (parte alta)
+	outportb (CRTCDat, n.b.h);
+	outportb (CRTCInd, 0x0D);    // Dir. de inicio de línea (parte baja)
+	outportb (CRTCDat, n.b.l);
+
+	do {} while (~inportb(ISR1) & 0x08);
+
+	// Realizamos el Scroll en pixels
+	outportb (CRTCInd, 0x08);    // Panning Vertical
+	outportb (CRTCDat, y % 16);
+
+	outportb (ATC, 0x13 | 0x20); // Panning Horizontal
+	outportb (ATC, ((x % 9) -1) | 0x20);
 };
 ```
 
