@@ -6,7 +6,7 @@ Para la documentación utilizaré C a modo de pseudocódigo.
 Abril 1996
 
 ### Constantes utilizadas en las funciones
-```
+```C
 #define VGA     0xA000	// VGA, Segmento de la memoria de video
 #define ATC     0x3C0	// ATC, Registro índice/escritura
 #define ATC1    0x3C1	// ATC, Registro de lectura
@@ -22,7 +22,7 @@ Abril 1996
 ```
 
 ### Estructura de un Color RGB
-```
+```C
 struct RGB
 {
 	unsigned char R, G, B;
@@ -30,7 +30,7 @@ struct RGB
 ```
 
 ### Estructura de un registro word con acceso directo al byte alto y bajo
-```
+```C
 struct BReg
 {
 	unsigned char l, h;
@@ -44,7 +44,7 @@ union Reg
 ```
 
 ### Prototipos de las funciones
-```
+```C
 void ModoX (void);
 void ModoTxt (void);
 void PonLongLin (unsigned int Long);
@@ -71,7 +71,7 @@ El Modo X no es más que un modo de trabajo no estándar de la VGA basado en el 
 4. **Activar Modo Byte**: El Modo Byte permite el direccionamiento directo e individual de cada byte de la memoria de vídeo.
 
 Ya solo queda borrar la pantalla (posiblemente llena de morralla) y empezar a disfrutar de nuestro recién establecido Modo X.
-```
+```C
 // Activar Modo X
 void ModoX (void)
 {
@@ -96,7 +96,7 @@ void ModoX (void)
 ## Establecer el Modo Texto
 
 Para establecer el Modo Texto basta con llamar a la interrupción 10h, función 00h. Si piensas que para qué hace falta establecer el Modo Texto la respuesta es muy sencilla: después de jugar con el Modo X (que dicho sea de paso no es un modo estándar con lo que ello conlleva) habremos de volver al monótono Modo Texto para que las cosas vayan como deben.
-```
+```C
 // Activar Modo Texto
 void ModoTxt (void)
 {
@@ -113,7 +113,7 @@ Es posible definir una longitud de línea distinta de la definida por el Modo 13
 No tiene demasiada importancia cuando se define la línea, pero ha de ser obligatoriamente después de definir el Modo X y antes de “dibujar” el primer punto.
 
 Para definir la longitud de la línea basta escribir el valor deseado en el registro CRTC 13h, teniendo en cuenta que se deberá especificar la longitud en Double Words, esto es, para una línea de 640 bytes tendremos 640 / 8 = 80 Double Words.
-```
+```C
 // Definir longitud de línea
 void PonLongLin (unsigned int Long)
 {
@@ -132,7 +132,7 @@ unsigned int LeeLongLin (void)
 Escribir (“dibujar”) un pixel en el Modo X es un poco (¿sólo un poco?) más complicado que hacerlo en el Modo 13h. En el Modo 13h los pixels se representan por un byte, lo mismo que en el Modo X, pero se alinean de forma lineal puesto que se direccionan los cuatro planos de forma automática, resultando como contrapartida de la simplicidad el que una sóla página ocupa ya la practica totalidad de la memoria de video direccionable. En el Modo X el direccionamiento de los planos es manual, lo que implica el tener que seleccionar el plano al que pertenece el pixel antes de escribirlo, esta “contrariedad” nos da la ventaja de poseer cuatro páginas en la misma memoria de video direccionable que en el Modo 13h.
 
 ¿Cómo es esto?, bastante sencillo... cuando se llega a comprender. Partamos de la base, de lo que disponemos: tenemos cuatro planos independientes con 64Kb de memoria de video direccionable cada uno, esto da 256Kb de memoria de video o 4 páginas del conocido Modo 13h. Los pixels ya no se estructuran de forma alineada en memoria, pero para simplificar la explicación supongamos que los direccionamos del mismo modo que en el Modo 13h, esto nos da direcciones de 18 bits donde los dos bits inferiores nos indican el plano al que pertenece el pixel, y los dieciséis restantes nos indican el offset en la memoria de video (segmento de la memoria de video: A000h).
-```
+```C
 // Escribir un Pixel en Modo X
 void PonPixel (unsigned int x, unsigned int y, unsigned char Color)
 {
@@ -150,7 +150,7 @@ void PonPixel (unsigned int x, unsigned int y, unsigned char Color)
 
 ## Leer un Pixel en Modo X
 Leer un pixel en el ModoX es tan fácil (o complicado) como escribirlo, pero existen algunas diferencias. Las diferencias radican en el direccionamiento de los planos. Existen dos registros que direccionan los planos, el TS 2 y el GDC 4. El TS 2 direcciona los planos para la escritura, utiliza para ello los cuatro bits de menor peso representando cada uno de ellos la habilitación para la escritura de cada plano, así es posible escribir en varios planos al mismo tiempo. El GDC 4 direcciona los planos para la lectura, utiliza para ello los dos bits de menor peso representando como Integer de 2 bits el plano que se leerá, queda claro que no se pueden leer varios planos al mismo tiempo.
-```
+```C
 // Leer un Pixel en Modo X
 unsigned char LeePixel (unsigned int x, unsigned int y)
 {
@@ -172,7 +172,7 @@ Borrar la pantalla consiste simplemente en llenar la memoria de video con un mis
 Recordando como se escribe un pixel vemos que antes de direccionarlo hay que seleccionar el plano, pues bien, aquí es donde esta el truco del almendruco. El Registro TS 2 indica los planos de escritura mediante los bits 3-0, así si el bit 0 esta activo, se escribirá en el plano 0; si el bit 1 esta activo, se escribirá en el plano 1; y así con el bit y el plano 2 y 3. Si activamos al mismo tiempo dos o más bits/planos tendremos que escribiremos en dos o más planos al mismo tiempo. Activando los cuatro planos al mismo tiempo tendremos que borrar sólo 64K pixels, es decir la cuarta parte que antes.
 
 Y puesto que no nos importa que coordenadas representa cada dirección podemos simplificar al máximo la escritura de cada pixel puesto que no tenemos que calcular el desplazamiento, basta con indicarlo directamente.
-```
+```C
 // Borrar la pantalla en Modo X
 void ClsX (void)
 {
@@ -192,7 +192,7 @@ void ClsX (void)
 
 ## Establecer 200 ó 400 líneas
 La VGA estándar sólo puede representar resoluciones de 350, 400 ó 480 líneas, así que para representar resoluciones de 200 líneas lo que hace es duplicar cada línea con lo que obtiene 400 / 2 = 200 líneas visualizadas. El registro CRTC 9 indica en su bit de más peso si se han de duplicar o no las líneas, y en los cinco bits de menor peso el número de copias extra de cada línea. Para pasar al modo de 400 líneas habrá que borrar los bits 7 y 4-0 del registro CRTC 9, mientras que para volver al modo de 200 líneas podemos activar unicamente el bit 7 o bien activar sólo el bit 0.
-```
+```C
 // Establecer 400 líneas
 void Modo400Lin (void)
 {
@@ -228,7 +228,7 @@ Para leer o escribir toda la paleta basta con repetir las operaciones de lectura
 
 La primera opción seria utilizar una de las dos funciones anteriores (la que corresponda) dentro de un bucle, mientras que la segunda es comenzar la operación en el color cero y leer 256 veces seguidas las tres componentes, sabiendo que cada trió corresponde a un color. La velocidad es tal que ni siquiera se aprecia parpadeo alguno al realizar la escritura de toda la paleta.
 
-```
+```C
 // Leer un color
 void LeeColor (unsigned char n, struct RGB *Color)
 {
@@ -282,7 +282,7 @@ Vamos a conocer la estructura del Modo 13h ya que ofrece unas posibilidades exce
 El Modo 13h ofrece una resolución de 320x200 con 256 colores, asi pues cada pixel está representado por un byte. Los pixels en la pantalla se estructuran en 200 lineas de 320 pixels cada una. En memoria la pantalla (los pixels) se “dibuja” en el segmento A000h, esto es asi por que una página (una pantalla) de 320x200 pixels nos da un total de 64000 pixels (bytes) y un segmento tiene un tamaño de 64Kb, así que disponemos de 1.5Kb extras para almacenar sprites (trozos de imagen). La estructura de los pixels en memoria es muy simple, estos están alineados en la memoria a partir de la dirección A0000h (segmento A000h, desplazamiento u offset 0000h), asi la primera línea ocupara las posiciones de memoria A0000h-A013Fh, la siguiente esta en A0140h-A027Fh y asi hasta la última línea. Pensando un poco puede llegarse a la siguiente expresión para calcular el desplazamiento de un pixel dadas sus coordenadas: Despl = 320 * y + x.
 
 Para acceder al Modo 13h y aprovecharse de sus posibilidades no hay otro medio que utilizar la interrupción 10h, función 00h, de la ROM BIOS.
-```
+```C
 // Activar Modo 13h
 void Modo13h (void)
 {
