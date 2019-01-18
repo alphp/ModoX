@@ -134,9 +134,11 @@ Las siete reglas siguientes tienen que seguirse cuando se codifica una subrutina
 La siguiente secuencia, en lueguaje ensamblador, demuestra el acceso a los parámetros pasados y almacena un resultado de retorno en la variable C.
 
 > ***Nota:***  
-    El programa de llamada tiene que conocer el tipo de la variable en los parámetros numéricos pasados. En estos ejemplos, la instrucción siguiente copia sólo dos bytes:  
-    `MOVSW`  
-    Esto es adeucado si las variables A y C son enteros. Sería necesario copiar cuatro bytes si fueran de simple precisión, o copiar ocho bytes si fueran de doble precisión.
+> El programa de llamada tiene que conocer el tipo de la variable en los parámetros numéricos pasados. En estos ejemplos, la instrucción siguiente copia sólo dos bytes:  
+> ```asm
+> MOVSW
+> ```  
+> Esto es adecuado si las variables A y C son enteros. Sería necesario copiar cuatro bytes si fueran de simple precisión, o copiar ocho bytes si fueran de doble precisión.
 
 ```asm
 MOV BP, SP     ;Obtiene la posición actual de la pila en BP.
