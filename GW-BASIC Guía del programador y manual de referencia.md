@@ -176,12 +176,17 @@ Cuando se ha realizado una llamada a la función USR, el registro AL contiene el
 
 Si el argumento de una llamada a la función USR es un número (AL <> 73), el valor del argumento se sitúa en el *acumulador de punto flotante* (FAC: *floating-point accumulator*). El FAC es de una longitud de ocho bytes y está en el segmento de datos del GW-BASIC. El registro BX apunta al quinto byte del FAC. La figura D.3 muestra la representación de todos los tipos numéricos del GW-BASIC en el FAC:
 
-| BX - 4 | BX - 3 | BX - 2 | BX - 1 |  BX  | BX + 1 | BX + 2 | BX + 3 | BX + 4 |     |
-|:------:|:------:|:------:|:------:|:----:|:------:|:------:|:------:|:------:|:---:|
-||||| byte menos significativo | byte más significativo |||| Entero |
-||||| byte menos significativo ||| byte más significativo | exponente menos 128 | Simple precisión |
-| byte menos significativo ||||||| byte más significativo | exponente menos 128 | Doble precisión |
-|||||||| byte de signo |||
+| Dirección | Entero                   | Simple precisión         | Doble precisión                          |
+|:---------:|:------------------------:|:------------------------:|:----------------------------------------:|
+|  BX + 4   |                          | exponente menos 128      | exponente menos 128                      |
+|  BX + 3   |                          | byte más significativo   | byte más significativo<br> byte de signo |
+|  BX + 2   |                          |                          |                                          |
+|  BX + 1   | byte más significativo   |                          |                                          |
+|  BX       | byte menos significativo | byte menos significativo |                                          |
+|  BX - 1   |                          |                          |                                          |
+|  BX - 2   |                          |                          |                                          |
+|  BX - 3   |                          |                          |                                          |
+|  BX - 4   |                          |                          | byte menos significativo                 |
 
 > **Figura D.3 Tipos numéricos en el acumulador en punto flotante**
 
