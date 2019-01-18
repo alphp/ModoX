@@ -138,7 +138,7 @@ La siguiente secuencia, en lueguaje ensamblador, demuestra el acceso a los pará
     `MOVSW`  
     Esto es adeucado si las variables A y C son enteros. Sería necesario copiar cuatro bytes si fueran de simple precisión, o copiar ocho bytes si fueran de doble precisión.
 
-```
+```asm
 MOV BP, SP     ;Obtiene la posición actual de la pila en BP.
 MOV BX, 8[BP]  ;Obtiene la dirección del descriptor B$.
 MOV CL, [BP]   ;Obtiene la longitud de B$ en CL.
@@ -244,7 +244,7 @@ El ejemplo 1 llama a una subrutina en lenguaje ensamblador:
 
 La subrutina en lenguaje ensamblador llamada en el programa anterior tiene que ser ensamblada, enlazada y convertida en un fichero .COM. El programa, cuando se ejecuta antes del programa en el GW-BASIC, permanecerá residente en memoria hasta que se desactive la alimentación del sistema o se reinicialice el sistema.
 
-```
+```asm
 0100            org 100H
 0100            double segment
                 assume cs:double
