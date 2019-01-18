@@ -176,70 +176,12 @@ Cuando se ha realizado una llamada a la función USR, el registro AL contiene el
 
 Si el argumento de una llamada a la función USR es un número (AL <> 73), el valor del argumento se sitúa en el *acumulador de punto flotante* (FAC: *floating-point accumulator*). El FAC es de una longitud de ocho bytes y está en el segmento de datos del GW-BASIC. El registro BX apunta al quinto byte del FAC. La figura D.3 muestra la representación de todos los tipos numéricos del GW-BASIC en el FAC:
 
-<style >
-.figd3 td {
-    width: 10%;
-    border: 1px solid black;
-    text-align: center;
-    vertical-align: middle;
-}
-.figd3 td:last-of-type { border: none; }
-.figd3 tr:last-of-type td { border: none; }
-.figd3 tr.space { border: none; height: 20px; }
-</style>
-<table class="figd3">
-    <tr>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td>byte menos significativo</td>
-        <td>byte más significativo</td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td>Entero</td>
-    </tr>
-    <tr class="space"></tr>
-    <tr>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td>byte menos significativo</td>
-        <td></td>
-        <td></td>
-        <td>byte más significativo</td>
-        <td>exponente menos 128</td>
-        <td>Simple precisión</td>
-    </tr>
-    <tr class="space"></tr>
-    <tr>
-        <td>byte menos significativo</td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td>byte más significativo</td>
-        <td>exponente menos 128</td>
-        <td>Doble precisión</td>
-    </tr>
-    <tr></tr>
-    <tr>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td>byte de signo</td>
-        <td></td>
-        <td></td>
-    </tr>
-</table>
+| BX - 4 | BX - 3 | BX - 2 | BX - 1 |  BX  | BX + 1 | BX + 2 | BX + 3 | BX + 4 |     |
+|:------:|:------:|:------:|:------:|:----:|:------:|:------:|:------:|:------:|:---:|
+||||| byte menos significativo | byte más significativo |||| Entero |
+||||| byte menos significativo ||| byte más significativo | exponente menos 128 | Simple precisión |
+| byte menos significativo ||||||| byte más significativo | exponente menos 128 | Doble precisión |
+|||||||| byte de signo |||
 
 > **Figura D.3 Tipos numéricos en el acumulador en punto flotante**
 
