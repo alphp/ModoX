@@ -1,3 +1,5 @@
+[![](https://img.shields.io/github/license/alphp/ModoX.svg)](https://github.com/alphp/ModoX/blob/master/LICENSE)
+
 # ModoX
 Librería gráfica escrita en ensamblador para QB (QuickBasic, QBasic).
 
